@@ -1,3 +1,8 @@
+# LOMAR 0.2.1
+
+## Changes
+  * Fixed C++ deprecation warnings about std::binary_function and std::unary_function
+
 # LOMAR 0.2.0
 
 ## Changes

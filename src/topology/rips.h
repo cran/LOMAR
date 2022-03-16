@@ -6,7 +6,6 @@
 #include "simplex.h"
 #include <boost/iterator/counting_iterator.hpp>
 
-
 /**
  * Rips class
  *
@@ -102,8 +101,13 @@ class Rips
         
 
 template<class Distances_, class Simplex_>
+#if __cplusplus < 201103L
 class Rips<Distances_, Simplex_>::WithinDistance: public std::binary_function<Vertex, Vertex, bool>
 {
+#else
+  class Rips<Distances_, Simplex_>::WithinDistance: public std::function<bool(Vertex, Vertex)>
+  {
+#endif
     public:
                             WithinDistance(const Distances_&    distances, 
                                            DistanceType         max):
@@ -117,8 +121,14 @@ class Rips<Distances_, Simplex_>::WithinDistance: public std::binary_function<Ve
 };
 
 template<class Distances_, class Simplex_>
-class Rips<Distances_, Simplex_>::Evaluator: public std::unary_function<const Simplex&, DistanceType>
+#if __cplusplus < 201103L
+  class Rips<Distances_, Simplex_>::Evaluator: public std::unary_function<const Simplex&, DistanceType>
 {
+#else
+  class Rips<Distances_, Simplex_>::Evaluator: public std::function<DistanceType(const Simplex&)>
+  {
+#endif
+  
     public:
         typedef             Simplex_                                        Simplex;
 
@@ -132,8 +142,14 @@ class Rips<Distances_, Simplex_>::Evaluator: public std::unary_function<const Si
 };
 
 template<class Distances_, class Simplex_>
+#if __cplusplus < 201103L
 class Rips<Distances_, Simplex_>::Comparison: public std::binary_function<const Simplex&, const Simplex&, bool>
 {
+#else
+  class Rips<Distances_, Simplex_>::Comparison: public std::function<bool(const Simplex&, const Simplex&)>
+{
+#endif
+
     public:
         typedef             Simplex_                                        Simplex;
 
@@ -155,11 +171,18 @@ class Rips<Distances_, Simplex_>::Comparison: public std::binary_function<const 
 };
 
 template<class Distances_, class Simplex_>
-struct Rips<Distances_, Simplex_>::ComparePair: 
+#if __cplusplus < 201103L
+struct Rips<Distances_, Simplex_>::ComparePair:
     public std::binary_function<const std::pair<IndexType, IndexType>&,
                                 const std::pair<IndexType, IndexType>&,
                                 bool>
 {
+#else
+  struct Rips<Distances_, Simplex_>::ComparePair:
+    public std::function<bool(const std::pair<IndexType, IndexType>&,
+			      const std::pair<IndexType, IndexType>&)>
+{
+#endif
                             ComparePair(const Distances& distances): 
                                 distances_(distances)                       {}
 

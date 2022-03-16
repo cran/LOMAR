@@ -7,16 +7,19 @@
 #include <utilities/timer.h>
 
 
-
 typedef std::vector< double > Point;
 typedef std::vector< Point > PointContainer;
 
 
 
 template< typename Simplex >
+#if __cplusplus < 201103L
 class ComparisonDataDimension :
-  public std::binary_function<const Simplex &, const Simplex &, bool> {
-
+  public std::binary_function<bool(const Simplex &, const Simplex &, bool> {
+#else
+class ComparisonDataDimension :
+      public std::function<bool(const Simplex &, const Simplex &)> {
+#endif
 public:
   bool operator()(const Simplex & a, const Simplex & b) const {
     if (a.data() == b.data())

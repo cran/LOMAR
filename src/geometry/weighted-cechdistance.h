@@ -13,10 +13,15 @@
 
 typedef     std::vector<double>                                     Point;
 typedef     std::vector<Point>                                      PointContainer;
-
+#if __cplusplus < 201103L
 struct WeightedL2Distance:
     public std::binary_function<const Point&, const Point&, double>
 {
+  #else
+struct WeightedL2Distance:
+    public std::function<double(const Point&, const Point&)>
+{
+  #endif
     result_type     operator()(const Point& p1, const Point& p2) const
     {
         AssertMsg(p1.size() == p2.size(), "Points must be in the same dimension (in L2Distance): dim1=%d, dim2=%d", p1.size()-1, p2.size()-1);

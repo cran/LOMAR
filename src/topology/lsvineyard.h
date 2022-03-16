@@ -177,8 +177,12 @@ class LSVineyard<V,VE,S,C>::KineticVertexType
 };
 
 template<class V, class VE, class S, class C>
+#if __cplusplus < 201103L
 class LSVineyard<V,VE,S,C>::TrajectoryExtractor: public std::unary_function<VertexIndex, typename KineticSimulator::Function>
 {
+#else
+  class LSVineyard<V,VE,S,C>::TrajectoryExtractor: public std::function<typename KineticSimulator::Function(VertexIndex)>
+#endif
     public:
         typedef                 typename KineticSimulator::Function                         Function;
 
@@ -194,8 +198,14 @@ class LSVineyard<V,VE,S,C>::TrajectoryExtractor: public std::unary_function<Vert
 };
 
 template<class V, class VE, class S, class C>
+#if __cplusplus < 201103L
 class LSVineyard<V,VE,S,C>::KineticVertexComparison: public std::binary_function<const KineticVertexType&, const KineticVertexType&, bool>
 {
+  #else
+  class LSVineyard<V,VE,S,C>::KineticVertexComparison: public std::function<bool(const KineticVertexType&, const KineticVertexType)>
+{
+  #endif
+  
     public:
                                 KineticVertexComparison(const VertexComparison& vcmp):
                                     vcmp_(vcmp)                                             {}
@@ -227,8 +237,14 @@ class LSVineyard<V,VE,S,C>::TranspositionVisitor: public Persistence::Transposit
 };
 
 template<class V, class VE, class S, class C>
+#if __cplusplus < 201103L
 class LSVineyard<V,VE,S,C>::Evaluator: public std::unary_function<Index, RealType>
 {
+#else
+  class LSVineyard<V,VE,S,C>::Evaluator: public std::function<RealType(Index)>
+  {
+#endif
+  
     public:
         virtual ~Evaluator() {}
         virtual RealType        time() const                                                =0;
@@ -239,8 +255,15 @@ class LSVineyard<V,VE,S,C>::Evaluator: public std::unary_function<Index, RealTyp
 };
 
 template<class V, class VE, class S, class C>
+#if __cplusplus < 201103L
 class LSVineyard<V,VE,S,C>::DimensionFromIterator: std::unary_function<iterator, Dimension>
 {
+#else
+  class LSVineyard<V,VE,S,C>::DimensionFromIterator: std::function<Dimension(iterator)>
+{
+#endif
+
+  
     public:
                                 DimensionFromIterator(const PFMap& pfmap): pfmap_(pfmap)    {}
 

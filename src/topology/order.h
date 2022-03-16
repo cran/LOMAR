@@ -69,10 +69,16 @@ struct OrderContainer
 
 
 template<class Container_, class Comparison_>
+#if __cplusplus < 201103L
 struct  ElementComparison: public std::binary_function<const typename Container_::value_type*,
                                                        const typename Container_::value_type*,
                                                        bool>
 {
+#else
+  struct  ElementComparison: public std::function<bool(const typename Container_::value_type*,
+                                                       const typename Container_::value_type*)>
+{
+#endif
     typedef             Container_                                                      Container;
     typedef             Comparison_                                                     Comparison;
     typedef             typename Container::value_type                                  Element;

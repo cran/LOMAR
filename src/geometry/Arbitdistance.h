@@ -17,10 +17,15 @@
 typedef     std::vector<double>                                     Point; //Indeed a point store its index in Point[0] and its distance to the other points in the other dimensions of the vector. 
 																		   // As a consequence the points indexing starts at 1.
 typedef     std::vector<Point>                                      PointContainer;
-
+#if __cplusplus < 201103L
 struct ArbitDistance:
     public std::binary_function<const Point&, const Point&, double>
 {
+  #else
+struct ArbitDistance:
+    public std::function<double(const Point&, const Point&)>
+{
+  #endif
     result_type     operator()(const Point& p1, const Point& p2) const
     {
         AssertMsg(p1.size() == p2.size(), "Points must be in the same dimension (in Arbitrary Distance): dim1=%d, dim2=%d", p1.size(), p2.size());

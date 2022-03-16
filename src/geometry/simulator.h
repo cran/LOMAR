@@ -116,11 +116,18 @@ class Simulator<FuncKernel_, EventComparison_>::Event
  * (which must not take any arguments during construction).
  */
 template<class FuncKernel_, template<class Event> class EventComparison_>
+#if __cplusplus < 201103L
 class Simulator<FuncKernel_, EventComparison_>::IndirectEventComparison:
     public std::binary_function<const typename EventComparison::first_argument_type*,
                                 const typename EventComparison::second_argument_type*,
                                 bool>
 {
+  #else
+class Simulator<FuncKernel_, EventComparison_>::IndirectEventComparison:
+    public std::function<bool(const typename EventComparison::first_argument_type*,
+			      const typename EventComparison::second_argument_type*)>
+{
+  #endif
     public:
         typedef                     EventComparison                                     Comparison;
         typedef                     const typename Comparison::first_argument_type*     first_argument_type;

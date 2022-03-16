@@ -331,9 +331,15 @@ class LSVineyard<V,VE,S,C>::KineticEvaluator: public Evaluator
 
 
 template<class V, class VE, class S, class C>
+#if __cplusplus < 201103L
 class LSVineyard<V,VE,S,C>::VertexAttachmentComparison: 
     public std::binary_function<Vertex, Vertex, bool>
 {
+  #else
+class LSVineyard<V,VE,S,C>::VertexAttachmentComparison: 
+    public std::function<bool(Vertex, Vertex)>
+{
+  #endif
     public:
                                 VertexAttachmentComparison(const VertexLSFIndexMap& vimap, 
                                                            const LSVineyard& vnrd):
@@ -348,9 +354,15 @@ class LSVineyard<V,VE,S,C>::VertexAttachmentComparison:
 
 
 template<class V, class VE, class S, class C>
+#if __cplusplus < 201103L
 struct LSVineyard<V,VE,S,C>::AttachmentCmp: 
     public std::binary_function<const SimplexPersistenceElementTuple&, const SimplexPersistenceElementTuple&, bool>
 {
+  #else
+  struct LSVineyard<V,VE,S,C>::AttachmentCmp: 
+    public std::function<bool(const SimplexPersistenceElementTuple&, const SimplexPersistenceElementTuple&)>
+{
+  #endif
     bool        operator()(const SimplexPersistenceElementTuple& t1, const SimplexPersistenceElementTuple& t2) const
     {
         if (b::get<1>(t1).get().attachment == b::get<1>(t2).get().attachment)

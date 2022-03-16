@@ -185,6 +185,7 @@ get_persistence_diagrams <- function(point.sets = NULL,
                lim = lims,
                by = grid.by, 
                sublevel = TRUE,
+               maxdimension = maxdimension,
                printProgress = FALSE )$diagram
     }
   }

@@ -308,9 +308,15 @@ pairing_switch(iterator i, iterator j)
 
 // Helper classes
 template<class D, class CT, class OT, class E, class Cmp, class CCmp>
-struct DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::TrailRemover: 
+#if __cplusplus < 201103L
+  struct DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::TrailRemover: 
     public std::unary_function<Element&, void>
 {
+#else
+  struct DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::TrailRemover: 
+    public std::function<void(Element&)>
+  {
+#endif
                                 TrailRemover(OrderIndex i):
                                     i_(i)                                       {}
     

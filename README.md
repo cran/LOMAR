@@ -8,15 +8,13 @@ This package provides three sets of functionalities:
 
 # Installation
 
-~~The package is [available on CRAN](https://cran.r-project.org/package=LOMAR).~~
+The package is [available on CRAN](https://cran.r-project.org/package=LOMAR).
 
-<!--
 ![Download counts](https://cranlogs.r-pkg.org/badges/grand-total/LOMAR) (from the RStudio mirror)
 
 ``` R
 install.packages("LOMAR")
 ```
--->
 
 To install the development version of this package, run (from within R):
 
