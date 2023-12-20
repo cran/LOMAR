@@ -4,17 +4,21 @@
 #' Using the geometric median is more robust than using the centre of mass (i.e. mean).
 #'
 #' @param point.set a point set as a matrix with columns x,y,z.
-#' @param size vector of distances from the geometric median of the points along each axis. 
+#' @param size vector of distances from the target region centre along each axis. 
 #'             Points are discarded if they are outside the ellipsoid defined by size and centred on 
-#'             the geometric median of the points.
+#'             the given position.
+#' @param center (optional) coordinates of the centre of the target region. If not given, 
+#'               default to the geometric median of the point set.
 #' @return point set as a matrix with columns x,y,z.
 #' @export
 
-crop_point_set <- function(point.set, size) {
+crop_point_set <- function(point.set, size, center = NULL) {
     xyz.idx <- match(colnames(point.set), c("x", "y", "z"))
     xyz.idx <- xyz.idx[!is.na(xyz.idx)]
-    center <- pracma::geo_median(point.set[, xyz.idx])$p
-    center <- center[names(center) %in% c('x','y','z')]
+    if(is.null(center)) {
+      center <- pracma::geo_median(point.set[, xyz.idx])$p
+      center <- center[names(center) %in% c('x','y','z')]
+    }
     if(length(size) == 1) { size <- rep(size, length(xyz.idx))}
     if(length(xyz.idx)>length(size)) {
         stop("ERROR: point set and crop size dimensionalities don't match.")
@@ -26,6 +30,8 @@ crop_point_set <- function(point.set, size) {
     if(length(idx.to.remove>0)) {
         point.set <- point.set[-idx.to.remove,, drop = FALSE]
     }
+    # Restore original coordinates
+    point.set[,xyz.idx] <- t(apply(point.set[, xyz.idx, drop = FALSE], 1, function(x) {x+center}))
     return(point.set)
 }
 
@@ -441,13 +447,9 @@ points2img <- function(points, voxel.size, method, channels = NULL, ncpu = 1) {
 #' @export
 
 points_from_roi <- function(points, roi) {
-  points$x <- points$x - roi['min','x']
-  points$y <- points$y - roi['min','y']
-  points$z <- points$z - roi['min','z']
-  
-  idx.to.keep <- which(points$x>0 & points$x<(roi['max','x']-roi['min','x']) 
-                       & (points$y>0 & points$y<(roi['max','y']-roi['min','y']))
-                       & (points$z>0 & points$z<(roi['max','z']-roi['min','z'])))
+  idx.to.keep <- which(points$x>roi['min','x'] & points$x<roi['max','x'] 
+                       & points$y>roi['min','y'] & points$y<roi['max','y']
+                       & points$z>roi['min','z'] & points$z<roi['max','z'])
   if(length(idx.to.keep)>0) {
       return(points[idx.to.keep,, drop = FALSE])
   } else {
@@ -513,7 +515,6 @@ locs2ps <- function(points, eps, minPts, keep.locprec = TRUE, keep.channel = TRU
   PS <- lapply(PS, function(x) { x["site"] <- NULL; as.matrix(x) })
   return(PS)
 }
-
 
 #' idx2rowcol
 #'
@@ -653,5 +654,138 @@ find_elbow <- function(values) {
   idx <- which.max(dist)
   
   return(coords[idx,])
+}
+
+#' denoise 
+#'
+#' Point density is estimated using a Gaussian mixture model and points in low
+#' density regions are considered as noise and removed. 
+#'
+#' @param points a data frame with columns x,y,z.
+#' @param k integer, number of mixture components for the GMM
+#' @param prob probability level in the range [0,1] to identify high density regions
+#' @return a point set
+#' @export
+
+denoise <- function(points, k = 16, prob = 0.3) {
+  model <- mclust::densityMclust(points[, c("x","y","z")], G = k, plot = FALSE)
+  # Find and keep high-density regions
+  hdr.threshold <- mclust::hdrlevels(model$density, prob = prob)
+  noise.idx <- which(model$density<hdr.threshold)
+  if(length(noise.idx)>0) {
+    return(points[-noise.idx,])
+  } else {
+    return(points)
+  }
+}
+
+#' group_events 
+#'
+#' Localisation events are grouped by recursively clustering mutual nearest neighbours.
+#' Neighbours are determined using the Mahalanobis distance to account for anisotropy in 
+#' the localisation precision. Since the Mahalanobis distance has approximately a 
+#' chi-squared distribution, a distance threshold can be chosen from a chi-squared table 
+#' where the number of degrees of freedom is the dimension and alpha can be seen
+#' as the probability of missing a localization event generated from the same fluorophore
+#' as the event under consideration.
+#'
+#' @param points a data frame with columns x,y,z.
+#' @param locprec localization precision in x,y
+#' @param locprecz localization precision along z, defaults to locprec
+#' @param p confidence level, see description. Defaults to 0.1
+#' @return a list with two elements:
+#'   \itemize{
+#'     \item points: a point set as data frame with columns x,y,z
+#'     \item membership: a vector of integers indicating the cluster to which each input point is allocated.
+#'   }
+#' @export
+
+group_events <- function(points, locprec = NULL, locprecz = NULL, p = 0.1) {
+  if(is.null(locprec)) {
+    stop("Value for the locprec parameter required")
+  }
+  if(is.null(locprecz)) {
+    locprecz <- locprec
+  }
+  points <- points[, c("x", "y", "z"), drop = FALSE]
+  if(nrow(points) == 1) {
+    pts <- points
+    membership <- 1
+  } else {
+    # Transform coordinates such that the Euclidean distance between the transformed 
+    # points is equal to the Mahalanobis distance with locprec^2 variance in the original
+    # space. This avoids computing a potentially very large custom distance matrix for 
+    # the nearest neighbours search which can be efficiently done by default with the
+    # Euclidean distance.
+    sigma <- c(locprec, locprec, locprecz)
+    pts <- t(apply(points, 1, function(x) {x/sigma}))
+    threshold <- stats::qchisq(p = p, df = ncol(points), lower.tail = FALSE)
+    pts <- cbind(id = seq(1:nrow(pts)), pts)
+    membership <- seq(1:nrow(pts))
+    nn <- RANN::nn2(pts[,-1], k = 2, searchtype = 'radius', radius = threshold)
+    idx <- nn$nn.idx[,-1]
+    iter <- 0
+    while(sum(idx) > 0) {
+      iter <- iter + 1
+      for(i in 1:nrow(pts)) {
+        if(idx[i] > 0 && idx[idx[i]] == i) { # Identify mutual nearest neighbours
+          to.update <- c(pts[i,1], pts[idx[i],1])
+          if(iter>1) {
+            # Both point i and its nearest neighbour can now be the centre of mass of multiple points
+            to.update <- which(membership == membership[pts[i,1]])
+            to.update <- c(to.update, which(membership == membership[pts[idx[i],1]]))
+          }
+          membership[to.update] <- pts[i,1]
+          pts[i, -1] <- colMeans(points[to.update,,drop = FALSE])/sigma
+          pts[idx[i],] <- NA
+          idx[i] <- 0 # indicate we've already processed this point
+        }
+      }
+      pts <- pts[stats::complete.cases(pts),, drop = FALSE]
+      if(nrow(pts) > 1) {
+        nn <- RANN::nn2(pts[,-1], k = 2, searchtype = 'radius', radius = threshold)
+        idx <- nn$nn.idx[,-1]
+      } else {
+        idx <- 0
+      }
+    }
+    if(nrow(pts) == 1) {
+      pts <- pts[,-1, drop = FALSE] * sigma
+    } else {
+      pts <- t(apply(pts[,-1, drop = FALSE], 1, function(x) {x*sigma}))
+    }
+  }
+  return(list(points = pts, membership = membership))
+}
+
+#' dist_to_line
+#'
+#' Compute distance between a set of points and a line defined by two points
+#'
+#' @param pts a data frame or matrix with 3 columns of coordinates
+#' @param a vector of coordinates of a point on the line
+#' @param b a second point on the line 
+#' @return vector of distances
+#' @export
+
+dist_to_line <- function(pts, a = NULL, b = NULL) {
+  if(is.null(a)) {
+    stop("Need at least one point on the line.\n")
+  }
+  if(is.null(b)) {
+    stop("Need a second point on the line.\n")
+  }
+  ba <- b - a
+  l <- sum(ba^2)
+  pa <- apply(pts, 1, function(p) { p - a})
+  # The cross product gives a vector perpendicular to the line
+  q <- apply(pa, 2, function(x) { pracma::cross(x, ba) })
+  # The norm of the perpendicular vector is the distance to the line
+  if(length(q)>0) {
+    dist.to.line <- apply(q, 2, function(y) {sum(y^2)/l})
+  } else {
+    dist.to.line <- 0
+  }
+  return(sqrt(dist.to.line))
 }
 

@@ -26,7 +26,13 @@ test_that("Image can be generated from localizations by histogram method", {
 test_that("Image can be generated from localizations by photon method", {
   pts <- as.data.frame(cbind(PS[[2]], split(locs$phot, locs$site)[[2]]))
   colnames(pts)[ncol(pts)] <- "phot"
-  suppressWarnings(I <- points2img(points = pts, voxel.size = c(10, 10, 30), method = 'photon', ncpu = 2))
+  ncpu <- parallel::detectCores()
+  if(ncpu>=2) {
+    ncpu <- 2
+  } else {
+    ncpu <- 1
+  }
+  suppressWarnings(I <- points2img(points = pts, voxel.size = c(10, 10, 30), method = 'photon', ncpu = ncpu))
   expect_equal(dim(I), c(30, 32, 29))
 })
 

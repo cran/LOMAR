@@ -1,7 +1,7 @@
 #include <utilities/log.h>
 
 #include <boost/function.hpp>
-#include <boost/bind.hpp>
+#include <boost/boost/bind/bind.hpp>
 #include <boost/lambda/lambda.hpp>
 namespace bl = boost::lambda;
 
@@ -57,7 +57,7 @@ LSVineyard(VertexIterator begin, VertexIterator end,
         LSFIndex i = vimap[vi->vertex()];
         const Simplex& s = *i;
         AssertMsg(s.vertices().front() == vi->vertex(), "In constructor, simplices and vertices must match.");
-        vertices_.modify(vi,    b::bind(&KineticVertexType::set_simplex_index, bl::_1, i));    // vi->set_simplex_index(i)
+        vertices_.modify(vi,    b::bind(&KineticVertexType::set_simplex_index, boost::placeholders::_1, i));    // vi->set_simplex_index(i)
         set_attachment(fpmap[i], vi);
         rLog(rlLSVineyardDebug, "%s attached to %d", tostring(*i).c_str(), vi->vertex());
     }
@@ -121,7 +121,7 @@ compute_vineyard(const VertexEvaluator& veval)
     TrajectoryExtractor traj(veval_, veval);
     
     KineticSortDS       sort(vertices_.begin(), vertices_.end(), 
-                             boost::bind(&LSVineyard::swap, this, bl::_1, bl::_2),
+                             boost::bind(&LSVineyard::swap, this, boost::placeholders::_1, boost::placeholders::_2),
                              &simulator, traj);
     
     // Process all the events (compute the vineyard in the process)

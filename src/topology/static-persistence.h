@@ -14,8 +14,13 @@ namespace bl = boost::lambda;
 
 #include <utilities/types.h>
 
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 108400
+#include <boost/timer/progress_display.hpp>
+#define IS_MODERN_BOOST
+#else
 #include <boost/progress.hpp>
-
+#endif
 
 // Element_ should derive from PairCycleData
 template<class Data_, class ChainTraits_, class Element_ = use_default>
@@ -155,8 +160,13 @@ class StaticPersistence
             // Function: finished(j)
             // Called after the processing of `j` is finished.
             void                        finished(iterator j) const                              { ++show_progress; }
-            mutable boost::progress_display     
+	  #ifdef IS_MODERN_BOOST
+	  mutable boost::timer::progress_display     
                                         show_progress;
+	  #else
+	  mutable boost::progress_display     
+                                        show_progress;
+	  #endif
         };
         
         struct                          PairVisitorNoProgress
@@ -172,10 +182,10 @@ class StaticPersistence
         Order&                          order()                                                 { return order_; }
 
         void                            set_pair(iterator i,    iterator j)                     { set_pair(i, &*j); }
-        void                            set_pair(iterator i,    OrderIndex j)                   { order_.modify(i, boost::bind(&OrderElement::set_pair, bl::_1, j)); }                  // i->set_pair(j)
+        void                            set_pair(iterator i,    OrderIndex j)                   { order_.modify(i, boost::bind(&OrderElement::set_pair, boost::placeholders::_1, j)); }                  // i->set_pair(j)
         void                            set_pair(OrderIndex i,  iterator j)                     { set_pair(iterator_to(i), &*j); }
         void                            set_pair(OrderIndex i,  OrderIndex j)                   { set_pair(iterator_to(i), j); }
-        void                            swap_cycle(iterator i,  Cycle& z)                       { order_.modify(i, boost::bind(&OrderElement::swap_cycle, bl::_1, boost::ref(z))); }    // i->swap_cycle(z)
+        void                            swap_cycle(iterator i,  Cycle& z)                       { order_.modify(i, boost::bind(&OrderElement::swap_cycle, boost::placeholders::_1, boost::ref(z))); }    // i->swap_cycle(z)
 
     private:
         Order                           order_;

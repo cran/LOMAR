@@ -4,7 +4,7 @@
 #include "static-persistence.h"
 #include <utilities/types.h>
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/lambda/lambda.hpp>
 namespace bl = boost::lambda;
 
@@ -147,8 +147,8 @@ class DynamicPersistenceTrails:
 
         bool                            trail_remove_if_contains
                                             (iterator i, OrderIndex j)                  { TrailRemover rm(j); order().modify(i, rm); return rm.result; }
-        void                            cycle_add(iterator i, const Cycle& z)           { order().modify(i, boost::bind(&Element::template cycle_add<ConsistencyComparison>, bl::_1, boost::ref(z), ccmp_)); }      // i->cycle_add(z, ccmp_)
-        void                            trail_add(iterator i, const Trail& t)           { order().modify(i, boost::bind(&Element::template trail_add<ConsistencyComparison>, bl::_1, boost::ref(t), ccmp_)); }      // i->trail_add(t, ccmp_)
+        void                            cycle_add(iterator i, const Cycle& z)           { order().modify(i, boost::bind(&Element::template cycle_add<ConsistencyComparison>, boost::placeholders::_1, boost::ref(z), ccmp_)); }      // i->cycle_add(z, ccmp_)
+        void                            trail_add(iterator i, const Trail& t)           { order().modify(i, boost::bind(&Element::template trail_add<ConsistencyComparison>, boost::placeholders::_1, boost::ref(t), ccmp_)); }      // i->trail_add(t, ccmp_)
 
     private:
         void                            swap(iterator i, iterator j);
@@ -159,12 +159,12 @@ class DynamicPersistenceTrails:
                                         PairingTrailsVisitor(Order& order, ConsistencyComparison ccmp, unsigned size):
                                             Parent::PairVisitor(size), order_(order), ccmp_(ccmp)   {}
 
-            void                        init(iterator i) const                          { order_.modify(i,                                  boost::bind(&Element::template trail_append<ConsistencyComparison>, bl::_1, &*i, ccmp_));
+            void                        init(iterator i) const                          { order_.modify(i,                                  boost::bind(&Element::template trail_append<ConsistencyComparison>, boost::placeholders::_1, &*i, ccmp_));
 #ifdef COUNTERS
             Count(cTrailLength);
 #endif // COUNTERS
             }        // i->trail_append(&*i, ccmp)
-            void                        update(iterator j, iterator i) const            { order_.modify(order_.iterator_to(*(i->pair)),     boost::bind(&Element::template trail_append<ConsistencyComparison>, bl::_1, &*j, ccmp_));
+            void                        update(iterator j, iterator i) const            { order_.modify(order_.iterator_to(*(i->pair)),     boost::bind(&Element::template trail_append<ConsistencyComparison>, boost::placeholders::_1, &*j, ccmp_));
 #ifdef COUNTERS
             Count(cTrailLength);
 #endif // COUNTERS
@@ -305,8 +305,8 @@ class DynamicPersistenceChains:
         using                           Parent::set_pair;
         using                           Parent::swap_cycle;
 
-        void                            cycle_add(iterator i, const Cycle& z)           { order().modify(i, boost::bind(&Element::template cycle_add<ConsistencyComparison>, bl::_1, boost::ref(z), ccmp_)); }      // i->cycle_add(z, ccmp_)
-        void                            chain_add(iterator i, const Chain& c)           { order().modify(i, boost::bind(&Element::template chain_add<ConsistencyComparison>, bl::_1, boost::ref(c), ccmp_)); }      // i->chain_add(c, ccmp_)
+        void                            cycle_add(iterator i, const Cycle& z)           { order().modify(i, boost::bind(&Element::template cycle_add<ConsistencyComparison>, boost::placeholders::_1, boost::ref(z), ccmp_)); }      // i->cycle_add(z, ccmp_)
+        void                            chain_add(iterator i, const Chain& c)           { order().modify(i, boost::bind(&Element::template chain_add<ConsistencyComparison>, boost::placeholders::_1, boost::ref(c), ccmp_)); }      // i->chain_add(c, ccmp_)
 
     private:
         void                            swap(OrderIndex i, OrderIndex j);
@@ -317,8 +317,8 @@ class DynamicPersistenceChains:
                                         PairingChainsVisitor(Order& order, ConsistencyComparison ccmp, unsigned size):
                                             Parent::PairVisitor(size), order_(order), ccmp_(ccmp)       {}
 
-            void                        init(iterator i) const                          { order_.modify(i,                  boost::bind(&Element::template chain_append<ConsistencyComparison>, bl::_1, &*i, ccmp_)); }                 // i->chain_append(&*i, ccmp)
-            void                        update(iterator j, iterator i) const            { order_.modify(j,                  boost::bind(&Element::template chain_add<ConsistencyComparison>, bl::_1, i->pair->chain, ccmp_)); }         // j->chain.add(i->pair->chain, ccmp_)
+            void                        init(iterator i) const                          { order_.modify(i,                  boost::bind(&Element::template chain_append<ConsistencyComparison>, boost::placeholders::_1, &*i, ccmp_)); }                 // i->chain_append(&*i, ccmp)
+            void                        update(iterator j, iterator i) const            { order_.modify(j,                  boost::bind(&Element::template chain_add<ConsistencyComparison>, boost::placeholders::_1, i->pair->chain, ccmp_)); }         // j->chain.add(i->pair->chain, ccmp_)
             void                        finished(iterator i) const                      { Parent::PairVisitor::finished(i); CountBy(cChainLength, i->chain.size()); }
 
             Order&                      order_;

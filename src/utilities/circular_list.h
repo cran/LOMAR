@@ -53,17 +53,16 @@ public:
 	class const_iterator;
 	
 	class iterator
-		: public std::iterator<std::forward_iterator_tag, T>
 	{
 		Node* m_rep;
 	public:
 		friend class List;
 		friend class const_iterator;
-		typedef T value_type;
-		typedef T& reference;
-		typedef T* pointer;
-		typedef int difference_type;
-		typedef std::forward_iterator_tag iterator_category;
+	        using iterator_category = std::forward_iterator_tag;
+	        using value_type = int;
+	        using difference_type = int;
+	        using pointer = int*;
+	        using reference = int&;
 
 		inline iterator(Node* x=0):m_rep(x){}
 		inline iterator(const iterator& x):m_rep(x.m_rep) {}
@@ -94,17 +93,17 @@ public:
 	};
 
 	class const_iterator
-		: public std::iterator<std::forward_iterator_tag, const T>
 	{
 		const Node* m_rep;
 	public:
 		friend class List;
 		friend class iterator;
-		typedef T value_type;
-		typedef T& reference;
-		typedef T* pointer;
-		typedef int difference_type;
-		typedef std::forward_iterator_tag iterator_category;
+	        using iterator_category = std::forward_iterator_tag;
+	        using value_type = int;
+	        using difference_type = int;
+	        using pointer = int*;
+	        using reference = int&;
+ 
 		inline const_iterator(const Node* x=0):m_rep(x){}
 		inline const_iterator(const const_iterator& x):m_rep(x.m_rep) {}
 		inline const_iterator(const iterator& x):m_rep(x.m_rep){}

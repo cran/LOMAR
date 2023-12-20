@@ -26,7 +26,11 @@ locs_from_csv <- function(file = NULL,
                           locprec.filter = 0,
                           locprecz.filter = 0) {
   message("Reading file ", file, "\n")
-  points <- data.table::fread(file, header = TRUE, stringsAsFactors = FALSE)
+  if(tools::file_ext(file) == "mat") { #Assume we have SMAP output file in Matlab hdf5 format
+    points <- as.data.frame(rhdf5::h5read(file, name = "saveloc/loc"))
+  } else {
+    points <- data.table::fread(file, header = TRUE, stringsAsFactors = FALSE)
+  }
   colnames(points) <- sub("^xnm$", "x", colnames(points))
   colnames(points) <- sub("^ynm$", "y", colnames(points))
   colnames(points) <- sub("^znm$", "z", colnames(points))
@@ -51,7 +55,7 @@ locs_from_csv <- function(file = NULL,
       llrel.filter['max'] <- Inf
     }
     if(is.null(llrel.filter['min'])) {
-      llrel.filter['max'] <- -Inf
+      llrel.filter['min'] <- -Inf
     }
     idx.to.remove <- c(idx.to.remove, which(points$LLrel < llrel.filter['min'] | points$LLrel > llrel.filter['max'], arr.ind = TRUE))
   }
@@ -63,7 +67,7 @@ locs_from_csv <- function(file = NULL,
       frame.filter['max'] <- Inf
     }
     if(is.null(frame.filter['min'])) {
-      frame.filter['max'] <- -Inf
+      frame.filter['min'] <- -Inf
     }
     idx.to.remove <- c(idx.to.remove, which(points$frame <= frame.filter['min'] | points$frame >= frame.filter['max'], arr.ind = TRUE))
   }
@@ -324,7 +328,7 @@ point_sets_from_tiffs <- function(image_dir = NULL,
 #' @export
 
 img2ps <- function(img = NULL, bkg = 0, crop.size = NULL) {
-  if(class(img) == "character" && file.exists(img)) {
+  if(methods::is(img,"character") && file.exists(img)) {
     img <- as.array(EBImage::readImage(img))
   }
   image.size <- dim(img)

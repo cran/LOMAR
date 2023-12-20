@@ -1,10 +1,13 @@
 # LOMAR
 
 An R package to deal with point sets from single molecule localization microscopy.
-This package provides three sets of functionalities:
+This package provides four sets of functionalities:
   - data input: read SMLM data as point sets either from csv files or from TIFF images
   - registration: point sets registration using different algorithms
   - topological data analysis: compute similarity between point sets using persistent homology
+  - alpha-shapes: compute alpha-shapes of point sets and derive 3d shape features
+  
+  [A preprint describing the package is available on bioRxiv](https://www.biorxiv.org/content/10.1101/2022.05.30.493957v1).
 
 # Installation
 
@@ -38,4 +41,9 @@ This package depends on these other packages:
   * aws
   * dbscan
   * EBImage (from Bioconductor)
+  * tools
+  * rhdf5
+  * mclust
+  * alphashape3d
+
   

@@ -4,14 +4,17 @@
 \alias{crop_point_set}
 \title{crop_point_set}
 \usage{
-crop_point_set(point.set, size)
+crop_point_set(point.set, size, center = NULL)
 }
 \arguments{
 \item{point.set}{a point set as a matrix with columns x,y,z.}
 
-\item{size}{vector of distances from the geometric median of the points along each axis. 
+\item{size}{vector of distances from the target region centre along each axis. 
 Points are discarded if they are outside the ellipsoid defined by size and centred on 
-the geometric median of the points.}
+the given position.}
+
+\item{center}{(optional) coordinates of the centre of the target region. If not given, 
+default to the geometric median of the point set.}
 }
 \value{
 point set as a matrix with columns x,y,z.

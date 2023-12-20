@@ -138,6 +138,7 @@ sliced_Wd <- function(Dg1, Dg2, M = 10, sigma = 1, dimensions = NULL, return.dis
 #' @param m0 parameter for the dtm function
 #' @param grid.by vector of space between points of the grid for the dtm function along each dimension
 #' @param ncpu number of parallel threads to use for computation
+#'@param cluster.type type of multicore cluster to use, either PSOCK (default) or FORK
 #' @return a list of persistence diagrams as n x 3 matrices. Each row is a topological feature
 #'  and the columns are dimension, birth and death of the feature.
 #' @examples 
@@ -156,11 +157,12 @@ get_persistence_diagrams <- function(point.sets = NULL,
                                      use.dtm = FALSE,
                                      m0 = NULL,
                                      grid.by = NULL,
-                                     ncpu = 1) {
+                                     ncpu = 1,
+                                     cluster.type = 'PSOCK') {
   Diag <- list()
   i <- NULL
   # Set up cluster for parallelization
-  cluster <- parallel::makeCluster(ncpu)
+  cluster <- parallel::makeCluster(ncpu, type = cluster.type)
   doParallel::registerDoParallel(cluster)
   n <- length(point.sets)
   if(!use.dtm) {
@@ -206,6 +208,7 @@ get_persistence_diagrams <- function(point.sets = NULL,
 #' @param M number of slices for the sliced Wasserstein kernel
 #' @param dimensions vector of the dimensions of the topological features to consider, if NULL (default) use all available dimensions
 #' @param ncpu number of parallel threads to use for computation
+#' @param cluster.type type of multicore cluster to use, either PSOCK (default) or FORK
 #' @return a matrix
 #' @examples 
 #' PS <- list(data.frame(x = c(2.4,-6.9,4.6,-0.7,-3.3,-4.9,-3.5,-3.5,4.2,-7),
@@ -221,11 +224,11 @@ get_persistence_diagrams <- function(point.sets = NULL,
 #' K <- get_kernel_matrix(Diag = Dgs, method = 'sWd', dimensions = c(0,1), M = 10, sigma = 5)
 #' @export
 
-get_kernel_matrix <- function(Diag = NULL, method = c("sWd", "pssk"), dimensions = NULL, return.dist = FALSE, M = NULL, sigma = NULL, ncpu = 1) {
+get_kernel_matrix <- function(Diag = NULL, method = c("sWd", "pssk"), dimensions = NULL, return.dist = FALSE, M = NULL, sigma = NULL, ncpu = 1, cluster.type = 'PSOCK') {
   n <- length(Diag)
   K <- matrix(NA, nrow = n, ncol = n)
   i <- j <- NULL
-  cluster <- parallel::makeCluster(ncpu)
+  cluster <- parallel::makeCluster(ncpu, type = cluster.type)
   doParallel::registerDoParallel(cluster)
   if(method == "sWd") {
     # Compute pairwise sliced Wasserstein distances

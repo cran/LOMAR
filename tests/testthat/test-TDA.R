@@ -12,7 +12,13 @@ test_that("Persistence diagrams can be computed", {
 
 test_that("Sliced Wasserstein distance matrix can be computed", {
   Diag <- get_persistence_diagrams(PS[1:20], maxdimension = 1, maxscale = 100)
-  sWD <- get_kernel_matrix(Diag, method = "sWd", M = 10, return.dist = TRUE, ncpu = 2)
+  ncpu <- parallel::detectCores()
+  if(ncpu>=2) {
+    ncpu <- 2
+  } else {
+    ncpu <- 1
+  }
+  sWD <- get_kernel_matrix(Diag, method = "sWd", M = 10, return.dist = TRUE, ncpu = ncpu)
   dt <- determinant(sWD)
   expect_equal(as.numeric(floor(dt$modulus)), 106)
 })

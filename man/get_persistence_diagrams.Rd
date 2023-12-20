@@ -11,7 +11,8 @@ get_persistence_diagrams(
   use.dtm = FALSE,
   m0 = NULL,
   grid.by = NULL,
-  ncpu = 1
+  ncpu = 1,
+  cluster.type = "PSOCK"
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ get_persistence_diagrams(
 \item{grid.by}{vector of space between points of the grid for the dtm function along each dimension}
 
 \item{ncpu}{number of parallel threads to use for computation}
+
+\item{cluster.type}{type of multicore cluster to use, either PSOCK (default) or FORK}
 }
 \value{
 a list of persistence diagrams as n x 3 matrices. Each row is a topological feature

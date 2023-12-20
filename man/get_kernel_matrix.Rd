@@ -11,7 +11,8 @@ get_kernel_matrix(
   return.dist = FALSE,
   M = NULL,
   sigma = NULL,
-  ncpu = 1
+  ncpu = 1,
+  cluster.type = "PSOCK"
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ get_kernel_matrix(
 \item{sigma}{kernel bandwidth}
 
 \item{ncpu}{number of parallel threads to use for computation}
+
+\item{cluster.type}{type of multicore cluster to use, either PSOCK (default) or FORK}
 }
 \value{
 a matrix

@@ -104,7 +104,7 @@ class LSVineyard
 
     private:
         void                        change_evaluator(Evaluator* eval);
-        void                        set_attachment(iterator i, VertexIndex vi)          { persistence_.modifier()(i, boost::bind(&AttachmentData::set_attachment, bl::_1, vi)); }
+        void                        set_attachment(iterator i, VertexIndex vi)          { persistence_.modifier()(i, boost::bind(&AttachmentData::set_attachment, boost::placeholders::_1, vi)); }
         void                        transpose_filtration(iterator i)                    { filtration_.transpose(filtration_.begin() + (i - persistence_.begin())); }
 
         bool                        verify_pairing() const;
