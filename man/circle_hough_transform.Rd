@@ -10,6 +10,7 @@ circle_hough_transform(
   rmax,
   threshold,
   resolution = 360,
+  min.separation = rmin/4,
   ncpu = 1
 )
 }
@@ -24,6 +25,8 @@ For images, background is expected to be 0 and signal to have positive values.}
 \item{threshold}{score threshold between 0 and 1.}
 
 \item{resolution}{number of steps in the circle transform (default: 360). This represents the maximum number of votes a point can get.}
+
+\item{min.separation}{distance between circle centres below which overlapping circles are considered the same and merged (default to 0.25*rmin)}
 
 \item{ncpu}{number of threads to use to speed up computation (default: 1)}
 }

@@ -38,7 +38,6 @@ This package depends on these other packages:
   * transport
   * RANN
   * ff
-  * aws
   * dbscan
   * EBImage (from Bioconductor)
   * tools

@@ -1,3 +1,10 @@
+# LOMAR 0.5.0
+
+## Changes
+  * Remove dependency on archived package aws
+  * New functions around alpha-shapes and multiple registration
+  * Bug fixes
+
 # LOMAR 0.2.1
 
 ## Changes

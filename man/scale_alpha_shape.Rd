@@ -15,5 +15,7 @@ scale_alpha_shape(as, s)
 an object of class ashape3d
 }
 \description{
-Uniformly scale an alpha-shape
+Uniformly scale an alpha-shape.
+Note that this computes the alpha-shape of the scaled point set 
+associated with the input alpha-shape.
 }

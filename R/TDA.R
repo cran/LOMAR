@@ -32,19 +32,15 @@ pssk <- function(Dg1 = NULL, Dg2 = NULL, sigma = NULL, dimensions = NULL) {
     n2 <- nrow(PD2)
     if(n1==0 || n2==0) { next }
     k <- 0
-    # Note: nested loops 25% faster than using apply()
-    for(i in 1:n1) {
-      p <- PD1[i,]
-      for(j in 1:n2) {
-        q <- PD2[j,]
-        qbar <- rev(q)
-        d1 <- (p[1]-q[1])^2+(p[2]-q[2])^2
-        d2 <- (p[1]-qbar[1])^2+(p[2]-qbar[2])^2
-        k <- k + exp(-d1/(8*sigma)) -exp(-d2/(8*sigma))
-      }
+    p <- PD1
+    for(j in 1:n2) {
+      q <- PD2[j,]
+      qbar <- rev(q)
+      d1 <- (p[,1]-q[1])^2+(p[,2]-q[2])^2
+      d2 <- (p[,1]-qbar[1])^2+(p[,2]-qbar[2])^2
+      k <- k + sum(exp(-d1/(8*sigma)) - exp(-d2/(8*sigma)))
     }
-    k <- k/(8*pi*sigma)
-    K <- K + k
+    K <- K + (k/(8*pi*sigma))
   }
   return(K)
 }
@@ -138,7 +134,7 @@ sliced_Wd <- function(Dg1, Dg2, M = 10, sigma = 1, dimensions = NULL, return.dis
 #' @param m0 parameter for the dtm function
 #' @param grid.by vector of space between points of the grid for the dtm function along each dimension
 #' @param ncpu number of parallel threads to use for computation
-#'@param cluster.type type of multicore cluster to use, either PSOCK (default) or FORK
+#' @param cluster.type type of multicore cluster to use, either PSOCK (default) or FORK
 #' @return a list of persistence diagrams as n x 3 matrices. Each row is a topological feature
 #'  and the columns are dimension, birth and death of the feature.
 #' @examples 

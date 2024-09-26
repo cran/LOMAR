@@ -392,7 +392,9 @@ wgmmreg <- function(X, Y, CX, CY, wx = NULL, wy = NULL, maxIter = 200, subsample
     sample.X <- sample(nrow(X), floor(subsample * nrow(X)))
     sample.Y <- sample(nrow(Y), floor(subsample * nrow(Y)))
     X <- X[sample.X,]
+    CX <- CX[,,sample.X]
     Y <- Y[sample.Y,]
+    CY <- CY[,,sample.Y]
   }
   D2 <- D*D
   if (D == 2) {
@@ -865,7 +867,7 @@ jrmpc <-function(V, C = NULL, K = NULL, g = NULL, initialPriors = NULL, updatePr
     ## Distribute on the enclosing sphere
     for(i in 1:K) {
       X[i,] <- stats::rnorm(d)
-      l <- sum(X[i,]^2)
+      l <- sqrt(sum(X[i,]^2))
       X[i,] <- (X[i,]/l) * radius
     }
   }
@@ -1049,4 +1051,128 @@ jrmpc <-function(V, C = NULL, K = NULL, g = NULL, initialPriors = NULL, updatePr
     t[[j]] <- t[[j]] * Vs[[j]][["sigma"]]
   }
   return(list(Y = TV, R = R, t = t, M = X, S = S, a = alpha, iter = iter, conv = conv, z = z))
+}
+
+#' multiple_registration
+#' 
+#' Registration of multiple point sets using tree-guided progressive registration 
+#' followed by iterative refinement.
+#'
+#' @param PS list of point sets
+#' @param registration pairwise registration method to use
+#' @param refine.iter Maximum number of refinement iterations (default: 20)
+#' @param ... additional arguments to the registration method
+#' @return  a list of 
+#' \itemize{
+#'     \item Y: list of transformed point sets as N x d matrices
+#' }
+#' @export
+
+multiple_registration <- function(PS, registration, refine.iter = 20, ...) {
+  
+  registration.name <- deparse(substitute(registration))
+  
+  params <- list(...)
+  # Select extra parameters used by registration function
+  params.idx <- which(names(params) %in% names(as.list(args(registration))))
+  if(length(params.idx)>0) {
+    params <- params[params.idx]
+  } else {
+    params <- NULL
+  }
+
+  if(registration.name == 'wgmmreg' && !methods::hasArg(C)) {
+    stop("Provide list of covariance matrices as argument C when using wgmmreg")
+  }
+  
+  if(length(params$C) > 0) {
+   C <- params$C 
+  } else {
+    C <- NULL
+  }
+  n <- length(PS); # Number of point sets
+  
+  # Build distance matrix
+  D <- matrix(Inf, nrow = n, ncol = n)
+  for(i in 1:n) {
+    X <- standardize_coordinates(PS[[i]])$X
+    for(j in 1:n) {
+      if (i == j) { next }
+      Y <- standardize_coordinates(PS[[j]])$X
+      nn <- RANN::nn2(X, Y, k = 1, searchtype = "standard")
+      Xc <- X[nn[["nn.idx"]], ]
+      D[i, j] <- mean((Xc - Y)^2)
+    }
+  }
+  # Progressive registration using guide tree
+  dend <- stats::hclust(stats::as.dist(D), method = 'complete')
+  PSc <- list()
+  Cc <- list()
+  CX <- NULL
+  CY <- NULL
+  for(i in 1:nrow(dend$merge)) {
+    r <- dend$merge[i,]
+    if(r[1]<0) {
+      X <- PS[[abs(r[1])]]
+      if(length(C) > 0) {
+        CX <- C[[abs(r[1])]]
+      }
+    } else {
+      X <- PSc[[r[1]]]
+      if(length(C) > 0) {
+        CX <- Cc[[r[1]]]
+      }
+    }
+    if(r[2]<0) {
+      Y <- PS[[abs(r[2])]]
+      if(length(C) > 0) {
+        CY <- C[[abs(r[2])]]
+      }
+    } else {
+      Y <- PSc[[r[2]]]
+      if(length(C)> 0) {
+        CY <- Cc[[r[2]]]
+      }
+    }
+    if(registration.name == 'wgmmreg') {
+      Yr <- registration(X = X, Y = Y, 
+                         CX = CX, CY = CY,
+                         subsample = params$subsample)$Y
+    } else {
+      Yr <- registration(X, Y, ...)$Y
+    }
+    PSc[[i]] <- rbind(X, Yr)
+    Cc[[i]] <- abind::abind(CX, CY, along = 3)
+  }
+  PSr <- list()
+  for(i in 1:n) {
+    if(registration.name == 'wgmmreg') {
+      PSr[[i]] <- registration(X = PSc[[(n-1)]], Y = PS[[i]], 
+                               CX = Cc[[(n-1)]], CY = C[[i]],
+                               subsample = params$subsample)$Y
+    } else {
+      PSr[[i]] <- registration(X = PSc[[(n-1)]], Y = PS[[i]], ...)$Y
+    }
+  }
+  
+  # Refinement
+  for(i in 1:refine.iter) {
+    for(j in 1:n) {
+      # Remove point set j from global registration 
+      tmp <- do.call(rbind, PSr[-j])
+      n0 <- floor(nrow(tmp)/(n-1))
+      tmp <- downsample(tmp, n = n0, k = ceiling(sqrt(n0)))
+      # Register point set j to the rest
+      if(registration.name == 'wgmmreg') {
+        Ctmp <- abind::abind(C[-j], along = 3)
+        PSr[[j]] <- registration(X = tmp, Y = PSr[[j]], 
+                                 CX = Ctmp, CY = C[[j]],
+                                 subsample = params$subsample)$Y
+      } else {
+        PSr[[j]] <- registration(tmp, PSr[[j]], ...)$Y
+      }
+    }
+  }
+  
+  return(list(Y = PSr))
 }

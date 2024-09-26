@@ -10,7 +10,7 @@ shape_features_3d(as)
 \item{as}{an alpha-shape object of class ashape3d}
 }
 \value{
-a named vector of numeric values
+a named vector of numeric values or NULL if no non-singular vertices
 }
 \description{
 Compute shape features of a 3D alpha-shape object
@@ -20,7 +20,10 @@ Features are:
   - major.axis, minor.axis and least.axis: Lengths of the axes of the fitted ellipsoid
   - elongation: from 0 (line) to 1 (globular)
   - flatness: from 0 (flat) to 1 (spherical)
+  - max.feret.diameter: Maximum Feret diameter
+  - max.inscribed.radius: Radius of the largest inscribed sphere
   - sphericity: from 0 (not spherical) to 1 (perfect sphere)
+  - concavity: fraction of the convex hull volume not in the object
   - volume
   - area: area of the surface of the alpha-shape
 }

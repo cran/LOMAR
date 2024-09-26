@@ -65,20 +65,24 @@ get_surface_area <- function(as) {
 #'   - major.axis, minor.axis and least.axis: Lengths of the axes of the fitted ellipsoid
 #'   - elongation: from 0 (line) to 1 (globular)
 #'   - flatness: from 0 (flat) to 1 (spherical)
+#'   - max.feret.diameter: Maximum Feret diameter
+#'   - max.inscribed.radius: Radius of the largest inscribed sphere
 #'   - sphericity: from 0 (not spherical) to 1 (perfect sphere)
+#'   - concavity: fraction of the convex hull volume not in the object
 #'   - volume
 #'   - area: area of the surface of the alpha-shape
 #'
 #' @param as an alpha-shape object of class ashape3d
-#' @return a named vector of numeric values
+#' @return a named vector of numeric values or NULL if no non-singular vertices
 #' @export
 
 shape_features_3d <- function(as) {
   # Remove singular vertices
   idx <- as$vertex[which(as$vertex[,5] < 3),1]
   if(length(idx)==0) { 
-    
-  }
+    # No non-singular vertices
+    return(NULL)
+  } else {
   # Axes of fitted ellipsoid
   pca <- stats::prcomp(as$x[idx,])
   axis.lengths <- pca$sdev
@@ -104,6 +108,7 @@ shape_features_3d <- function(as) {
            flatness = flatness, max.feret.diameter = max.feret.d, 
            max.inscribed.radius = insc.r, sphericity = sphericity, 
            concavity = concavity, volume = volume, area = area))
+  }
 }
 
 #' dist_to_boundary
@@ -139,7 +144,9 @@ dist_to_boundary <- function(points, shape) {
 
 #' scale_alpha_shape
 #'
-#' Uniformly scale an alpha-shape
+#' Uniformly scale an alpha-shape.
+#' Note that this computes the alpha-shape of the scaled point set 
+#' associated with the input alpha-shape.
 #'
 #' @param as an alpha-shape object of class ashape3d
 #' @param s scaling factor
@@ -156,7 +163,7 @@ scale_alpha_shape <- function(as, s) {
   while(is.null(AS) && attempts <= 5) {
     attempts <- attempts + 1
     try({
-      AS <- alphashape3d::ashape3d(jitter(X, amount = 1), alpha = a, pert = FALSE)
+      AS <- alphashape3d::ashape3d(jitter(X, amount = s), alpha = a, pert = FALSE)
     })
   }
   return(AS)

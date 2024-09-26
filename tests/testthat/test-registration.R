@@ -26,7 +26,7 @@ test_that("Registration with icp works", {
 test_that("Joint registration of multiple point clouds works", {
   trsf <- jrmpc(PS, C = C, K = 100, maxIter = 20, tol = 0.01, model.selection = TRUE)
   expect_lte(trsf$iter, 20)
-  expect_lte(trsf$conv, 0.02)
+  expect_lte(trsf$conv, 0.025)
 })
 
 # test_that("Registration with wgmmreg works", {

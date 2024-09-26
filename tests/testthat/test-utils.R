@@ -42,3 +42,9 @@ test_that("Circle Hough transform works", {
   df <- circle_hough_transform(img, rmin = 5, rmax = 5, threshold = 0.4)
   expect_equal(df[, c("x", "y", "r")], data.frame(x = 16, y = 12, r = 5))
 })
+
+test_that("coloc_index works", {
+  ci <- coloc_index(P1 = standardize_coordinates(PS[[1]])$X, P2 = standardize_coordinates(PS[[2]])$X)
+  ci <- sum(unlist(lapply(ci, mean)))
+  expect_equal(ci, 0.650, tolerance = 0.001)
+})

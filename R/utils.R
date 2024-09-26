@@ -1,3 +1,162 @@
+
+#' binning
+#'
+#' Binning in 1D, 2D or 3D.
+#' 
+#' Copied from package aws which is no longer in CRAN.
+#' Original author:  Joerg Polzehl (polzehl@wias-berlin.de)
+#' who adapted code of function binning in package sm.
+#'
+#' @param x design matrix, dimension n x d with d in 1:3.
+#' @param y either a response vector of length n or NULL.
+#' @param nbins vector of length d containing number of bins for each dimension, may be set to NULL.
+#' @param xrange range for endpoints of bins for each dimension, either matrix of dimension 2 x d or NULL. xrange is increased if the cube defined does not contain all design points.
+#' @return a list with elements:
+#'   \itemize{
+#'     \item x matrix of coordinates of non-empty bin centers
+#'     \item x.freq number of observations in nonempty bins
+#'     \item midpoints.x1 bin centers in dimension 1
+#'     \item midpoints.x2 bin centers in dimension 2
+#'     \item midpoints.x3 bin centers in dimension 3
+#'     \item breaks.x1 break points dimension 1
+#'     \item breaks.x2 break points dimension 2
+#'     \item breaks.x3 break points dimension 3
+#'     \item table.freq number of observations per bin
+#'     \item means means of y in non-empty bins (if y isn't NULL)
+#'     \item devs standard deviations of y in non-empty bins (if y isn't NULL)
+#'   }
+#' @export
+
+binning <- function (x, y, nbins, xrange = NULL) {
+  if(any(nbins<2)) stop("binning - need at least 2 bins")
+  dx <- dim(x)
+  if (is.null(dx))
+    d <- 1
+  else
+    d <- dx[2]
+  if (d > 3) {
+    warning("Binning only implemented in 1D, 2D and 3D")
+    return(NULL)
+  }
+  if (length(nbins) < d || any(nbins < 2)) {
+    warning("Invalid values for nbins")
+    return(NULL)
+  }
+  if (!is.null(y) && length(y) * d != length(x)) {
+    warning("Dimensions of design matrix incompatible with length of response vector")
+    return(NULL)
+  }
+  if (is.null(xrange)) {
+    xrange <- if (d == 1)
+      range(x)
+    else
+      apply(x, 2, range)
+  } else {
+    if ((d == 1 &&
+         length(xrange) != 2) || (d > 1 && any(dim(xrange) != c(2, d)))) {
+      warning("Dimensions of xrange incorrect ")
+      return(NULL)
+    }
+    xrange <-
+      if (d == 1)
+        range(x, xrange)
+    else
+      apply(rbind(x, xrange), 2, range)
+  }
+  xnames <- if (d > 1)
+    dimnames(x)[[2]]
+  else
+    names(x)
+  breaks.x1 <- seq(xrange[1], xrange[2], length = nbins[1] + 1)
+  if (d > 1)
+    breaks.x2 <- seq(xrange[1, 2], xrange[2, 2], length = nbins[2] + 1)
+  if (d > 2)
+    breaks.x3 <- seq(xrange[1, 3], xrange[2, 3], length = nbins[3] + 1)
+  f1 <- cut(if (d == 1)
+    x
+    else
+      x[, 1], breaks = breaks.x1)
+  if (d > 1)
+    f2 <- cut(x[, 2], breaks = breaks.x2)
+  if (d > 2)
+    f3 <- cut(x[, 3], breaks = breaks.x3)
+  freq <- switch(d, table(f1), table(f1, f2), table(f1, f2, f3))
+  dimnames(freq) <- NULL
+  midpoints.x1 <-
+    (breaks.x1[-1] + breaks.x1[-(nbins[1] + 1)]) / 2
+  if (d > 1)
+    midpoints.x2 <- (breaks.x2[-1] + breaks.x2[-(nbins[2] + 1)]) / 2
+  if (d > 2)
+    midpoints.x3 <- (breaks.x3[-1] + breaks.x3[-(nbins[3] + 1)]) / 2
+  z1 <- midpoints.x1
+  if (d > 1)
+    z2 <- midpoints.x2
+  if (d > 2)
+    z3 <- midpoints.x3
+  X <- switch(d, z1,
+              cbind(rep(z1, length(z2)),
+                    rep(z2, rep(
+                      length(z1), length(z2)
+                    ))),
+              cbind(rep(z1, length(z2) * length(z3)),
+                    rep(z2, rep(
+                      length(z1) * length(z3), length(z2)
+                    )),
+                    rep(z3, rep(
+                      length(z1) * length(z2), length(z3)
+                    ))))
+  X.f <- as.vector(freq)
+  id <- (X.f > 0)
+  if (d > 1)
+    X <- X[id,]
+  else
+    X <- X[id]
+  if (d > 1)
+    dimnames(X) <- list(NULL, xnames)
+  else
+    names(X) <- xnames
+  X.f <- X.f[id]
+  result <- list(
+    x = X,
+    x.freq = X.f,
+    midpoints.x1 = midpoints.x1,
+    midpoints.x2 = if (d > 1)
+      midpoints.x2
+    else
+      NULL,
+    midpoints.x3 = if (d > 2)
+      midpoints.x3
+    else
+      NULL,
+    breaks.x1 = breaks.x1,
+    breaks.x2 = if (d > 1)
+      breaks.x2
+    else
+      NULL,
+    breaks.x3 = if (d > 2)
+      breaks.x3
+    else
+      NULL,
+    table.freq = freq
+  )
+  if (!is.null(y) && !all(is.na(y))) {
+    result$means <- as.numeric(tapply(y, switch(
+      d, list(f1),
+      list(f1, f2), list(f1, f2, f3)
+    ),
+    mean))[id]
+    result$devs <- as.numeric(tapply(y, switch(
+      d, list(f1),
+      list(f1, f2), list(f1, f2, f3)
+    ),
+    function(x)
+      sum((x - mean(
+        x
+      )) ^ 2)))[id]
+  }
+  result
+}
+
 #' crop_point_set
 #'
 #' Retain points in the set that are within the given distance from the geometric median of the set.
@@ -153,7 +312,11 @@ downsample <- function(point.set, n = NULL, k = NULL, weights = NULL) {
   }
   if(is.null(weights)) {
     weights <- local_densities(point.set, k)
-    weights <- (weights - min(weights))/(max(weights) - min(weights))  # Rescale to [0,1]
+    if(max(weights) == min(weights)) {
+      weights <- rep((1/nrow(point.set)), nrow(point.set))
+    } else {
+      weights <- (weights - min(weights))/(max(weights) - min(weights))  # Rescale to [0,1]
+    }
   }
   replace <- FALSE
   if(nrow(point.set) <= n) {
@@ -175,6 +338,7 @@ downsample <- function(point.set, n = NULL, k = NULL, weights = NULL) {
 #' @param rmax maximum search radius.
 #' @param resolution number of steps in the circle transform (default: 360). This represents the maximum number of votes a point can get.
 #' @param threshold score threshold between 0 and 1.
+#' @param min.separation distance between circle centres below which overlapping circles are considered the same and merged (default to 0.25*rmin)
 #' @param ncpu number of threads to use to speed up computation (default: 1)
 #' @return a data frame with columns x, y, r and score
 #' @examples
@@ -184,7 +348,7 @@ downsample <- function(point.set, n = NULL, k = NULL, weights = NULL) {
 #'                                   threshold = 0.1, ncpu = 1)
 #' @export
 
-circle_hough_transform <- function(pixels, rmin, rmax, threshold, resolution = 360, ncpu = 1) {
+circle_hough_transform <- function(pixels, rmin, rmax, threshold, resolution = 360, min.separation = rmin/4, ncpu = 1) {
   
   if (threshold<=0 || threshold>1) {
     stop("ERROR: Threshold must be between 0 and 1")
@@ -193,7 +357,7 @@ circle_hough_transform <- function(pixels, rmin, rmax, threshold, resolution = 3
   circles.found <- NULL
   d <- vector("numeric", 2) # dimensions of the image or region to consider
   
-  if(all(class(pixels) != "data.frame" & length(dim(pixels))==2)) { 
+  if(methods::is(pixels, "matrix") && length(dim(pixels))==2) { 
     ## Extract table of coordinates of non-zero pixels
     coords <- which(pixels!=0, arr.ind = TRUE)
     if(length(coords)==0) {
@@ -220,7 +384,6 @@ circle_hough_transform <- function(pixels, rmin, rmax, threshold, resolution = 3
   # Hough transform
   A <- ff::ff(0, dim = c(d[1], d[2], length(radii))) # array(0, c(d[1], d[2], length(radii)))
   tmp <- foreach::foreach(k = 1:length(radii), .combine = 'c', .packages = c('ff')) %dopar% {
-    # for(k in 1:length(radii)) {
     r <- radii[k]
     for(i in 1:nrow(pixels)) {
       x <- pixels$x[i]
@@ -267,7 +430,7 @@ circle_hough_transform <- function(pixels, rmin, rmax, threshold, resolution = 3
         ## and merge those that are too close
         dst <- as.matrix(stats::dist(coords[,-3]))
         diag(dst) <- NA
-        rws <- unique(as.vector(which(dst<min(radii)/4, arr.ind = TRUE)))
+        rws <- unique(as.vector(which(dst<min.separation, arr.ind = TRUE)))
         if(length(rws)>1) {
           new.centre <- round(apply(coords[rws,], 2, mean))
           coords <- coords[-rws,]
@@ -417,15 +580,15 @@ points2img <- function(points, voxel.size, method, channels = NULL, ncpu = 1) {
     if(length(channels) > 1) {
       for(c in channels) {
         pts <- points[which(points$channel == c), c('x','y','z')]
-        bins <- aws::binning(x = pts, y = NULL, nbins = image.size[1:3])
+        bins <- binning(x = pts, y = NULL, nbins = image.size[1:3])
         I[,,,c] <- bins$table.freq
       }
     } else {
       if(length(channels == 1)) {
         pts <- points[which(points$channel == channels), c('x','y','z')]
-        bins <- aws::binning(x = pts, y = NULL, nbins = image.size)
+        bins <- binning(x = pts, y = NULL, nbins = image.size)
       } else {
-        bins <- aws::binning(x = points[,c('x','y','z')], y = NULL, nbins = image.size)
+        bins <- binning(x = points[,c('x','y','z')], y = NULL, nbins = image.size)
       }
       I <- array(bins$table.freq, dim = dim(bins$table.freq))
     }
@@ -789,3 +952,75 @@ dist_to_line <- function(pts, a = NULL, b = NULL) {
   return(sqrt(dist.to.line))
 }
 
+#' coloc_index
+#'
+#' Compute a co-localization index between two sets of points. 
+#' Adapted from:
+#' Willems and MacGillavry, A coordinate-based co-localization index to quantify
+#' and visualize spatial associations in single-molecule localization microscopy.
+#' Sci Rep 12, 4676 (2022). https://doi.org/10.1038/s41598-022-08746-4
+#'
+#' This can be seen as measuring the similarity between two spatial distributions.
+#' Co-clustering in dense structures can give values above 1.
+#' 
+#' Localization precision is optional but if used then all locprec parameters
+#' must be specified.
+#' 
+#' @param P1 a point set as matrix or data frame with columns x,y,z.
+#' @param locprec1 (optional) localization precision in x,y for P1
+#' @param locprecz1 (optional) localization precision along z for P1
+#' @param P2 a point set as matrix or data frame with columns x,y,z.
+#' @param locprec2 (optional) localization precision in x,y for P2
+#' @param locprecz2 (optional) localization precision along z for P2
+#' @return a list with two elements:
+#'   \itemize{
+#'     \item vector of co-localization indices for points in P1 relative to P2
+#'     \item vector of co-localization indices for points in P2 relative to P1
+#'   }
+#' @export
+
+coloc_index <- function(P1, locprec1 = NULL, locprecz1 = NULL, P2, locprec2 = NULL, locprecz2 = NULL) {
+  
+  if(ncol(P1) != ncol(P2)) {
+    stop("The two point sets must have the same dimensions (i.e. number of columns)")
+  } 
+  if(!all(c("x", "y", "z") %in% colnames(P1))) {
+    stop("P1 must have columns named x, y and z")
+  }
+  if(!all(c("x", "y", "z") %in% colnames(P2))) {
+    stop("P2 must have columns named x, y and z")
+  }
+  if(!is.null(locprec1) && !is.null(locprecz1) && !is.null(locprec2) && !is.null(locprecz2)) {
+    # To account for anisotropy in z, transform coordinates such that the Euclidean 
+    # distance between the transformed points is equal to the Mahalanobis distance
+    # with locprec^2 variance in the original space.
+    sigma1 <- c(locprec1, locprec1, locprecz1)
+    pts1 <- t(apply(P1[, c("x", "y", "z")], 1, function(x) {x/sigma1}))
+    sigma2 <- c(locprec2, locprec2, locprecz2)
+    pts2 <- t(apply(P2[, c("x", "y", "z")], 1, function(x) {x/sigma2}))
+  } else {
+    pts1 <- P1[, c("x", "y", "z")]
+    pts2 <- P2[, c("x", "y", "z")]
+  }
+  nnP1 <- RANN::nn2(pts1, k = 2)
+  mnnd1 <- mean(nnP1$nn.dists[,2])
+  nnP2 <- RANN::nn2(pts2, k = 2)
+  mnnd2 <- mean(nnP2$nn.dists[,2])
+  # Assume that no point is within mnnd of more than 25% of the other points
+  nn1 <- RANN::nn2(pts1, k = floor(nrow(pts1)/4), searchtype = 'radius', radius = mnnd1)
+  nn2 <- RANN::nn2(pts1, k = floor(nrow(pts2)/4), searchtype = 'radius', radius = mnnd2)
+  # Local density as number of points within mnnd
+  ld1 <- apply(nn1$nn.idx, 1, function(x) {length(which(x>0))})
+  ld2 <- apply(nn2$nn.idx, 1, function(x) {length(which(x>0))})
+  
+  # P2 points that are within mnnd2 of P1 points
+  nn12 <- RANN::nn2(pts2, pts1, k = floor(nrow(pts2)/4), searchtype = 'radius', radius = mnnd2)
+  ld12 <- apply(nn12$nn.idx, 1, function(x) {length(which(x>0))})
+  coloc.idx12 <- ld12/mean(ld2)
+  # P1 points that are within mnnd1 of P2 points
+  nn21 <- RANN::nn2(pts1, pts2, k = floor(nrow(pts1)/4), searchtype = 'radius', radius = mnnd1)
+  ld21 <- apply(nn21$nn.idx, 1, function(x) {length(which(x>0))})
+  coloc.idx21 <- ld21/mean(ld1)
+  
+  return(list(coloc.idx12, coloc.idx21))
+}
