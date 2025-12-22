@@ -1,13 +1,13 @@
-00d154888f8cc9d08254ff9a03ec9889 *DESCRIPTION
+159b9969ccd522a7eb37146e1099445d *DESCRIPTION
 79f84ca6b22e6579d439a673aa257a9d *NAMESPACE
-e102af56190720913b3c9cd0a4a9f549 *NEWS.md
+eab9b6f610af5a4d912de29f0e14440b *NEWS.md
 6057c99c4843eb49e7b3305c642e6b75 *R/LOMAR-package.R
 e17312549cf21f16bab93b6541e14778 *R/RcppExports.R
-aee26daa905e5901cff3bb609db31e48 *R/TDA.R
-6cf993152b2acf831379d06701d08df6 *R/alpha_shape.R
+6d148c008655b60a827a6182be75bb67 *R/TDA.R
+46b254a0dd79d26cbe411446486efbe3 *R/alpha_shape.R
 bca702859e2be62d634909750a897ffb *R/data_input.R
-9732ab6beb07a239f7a694fd4f10a0b3 *R/registration.R
-475b89ef590bf51b831be242bdb2d388 *R/utils.R
+8b61524eea7d979e0ae5174ee12f8086 *R/registration.R
+48f6db67bc7b1da1d2aeeb3d325687ad *R/utils.R
 e682402f03493a7b0857295b002df72c *README.md
 56dc2d3431942ec49053ec8013c9e7b2 *inst/test_data/img/alien1_3d.tif
 e60413287fcd7b7d08f42962d78c0688 *inst/test_data/img/alien2_3d.tif
@@ -25,7 +25,7 @@ e48f8f80a03f0cec188e4ff3a328ae23 *man/binning.Rd
 2cc0281af5b213705709b7042e22fc77 *man/circle_hough_transform.Rd
 475bc7ae804debf2a3576baa6e0683ea *man/coloc_index.Rd
 557c6bd033d3fe3069ee9413663a085d *man/costWd.Rd
-b9a2aa79fbebcb0767a2e592d10b767f *man/cpd.Rd
+96584962c3b4e4c9e5047effe2ca1189 *man/cpd.Rd
 e14a7e27a201077e51af58828828aea1 *man/crop_point_set.Rd
 911ea6f69ccd850c782affad9d50052f *man/denoise.Rd
 bf2814166ecdc1161f62bc401e66734b *man/dist_to_boundary.Rd
@@ -38,7 +38,7 @@ f2f0bb1ad6f1604c196ff28c66e538b5 *man/get_shape.Rd
 94fc68870b7d09c710402fbc8037a6ab *man/get_surface_area.Rd
 e07db99c696c20f9cc3d1b7c40da694e *man/gradientWd.Rd
 cfc64c40fdaba2626d34e78d01dc5c79 *man/group_events.Rd
-ed72bd9784d6f86419a9cb110ec3eaff *man/icp.Rd
+258156ae346b27083a6c2a1d7384aad4 *man/icp.Rd
 132ab56932e859524c987d3a62c7ec48 *man/idx2rowcol.Rd
 5db4df69e6434c07ffbd0cc75a51dd94 *man/img2ps.Rd
 60808937e6d6db672051f0adee5adcd0 *man/jrmpc.Rd
@@ -60,11 +60,11 @@ a9ab63d07dfb40847992fcaa97b6380d *man/points_from_roi.Rd
 d27eb5eb77b96b5898358a0b8a2449ab *man/roty.Rd
 19af6c3771c701c8ca2760557cf2e0dc *man/rotz.Rd
 7ac3c2876f0f68e30d36218271be8a3d *man/scale_alpha_shape.Rd
-c78b9ef5e66b3d755d15b949a1945cda *man/shape_features_3d.Rd
+074b4bb4d493205a9457548c412bded2 *man/shape_features_3d.Rd
 bde15dd6029c5b31aab023924c435513 *man/sliced_Wd.Rd
 464bdd907efedfb5020c3e633a0ebd42 *man/standardize_coordinates.Rd
 082337353f7b118db615c536ff1b8220 *man/tr.Rd
-36407d2026ae2bd0363a33429c9b5541 *man/wgmmreg.Rd
+e416fc43194d3a4ac269ba12e0399136 *man/wgmmreg.Rd
 54b58c3d555580ac565b1c7a725121ca *src/Makevars
 4faa3af606983131f543f34b43a58351 *src/RcppExports.cpp
 462eb43368dfffba570f3065c421fb1b *src/boost/container/detail/copy_move_algo.hpp
@@ -72,7 +72,7 @@ bde15dd6029c5b31aab023924c435513 *man/sliced_Wd.Rd
 0fe897655a246b031c177852f653ce8d *src/boost/container/flat_map.hpp
 991a7740806a3fff7be12a0b2e5695db *src/boost/container/vector.hpp
 28fe85825aecf267411cbff2c00b6da0 *src/boost/serialization/binary_object.hpp
-5e25aaa826bdf2f0fba42be72bb54b79 *src/diag.cpp
+7864a95c53fe301c8d8378542e66cf1b *src/diag.cpp
 188caa00dbad91a3273804c96a567e6e *src/dtm.h
 b05ae0ecc689307fb8fddc2d47efef31 *src/geometry/Arbitdistance.h
 b266594c8e380fc9f25d9a18b71d2b94 *src/geometry/NOTES
@@ -156,4 +156,4 @@ edcaa62fd678f6fd3cda4364f6e9fbb5 *tests/testthat.R
 e6558745cfa11e60a9f57bb29e98d624 *tests/testthat/test-alphashape.R
 210f5b339ab816f6e2d475775fe4ba97 *tests/testthat/test-data_input.R
 3cd012d07d14bd2e0bf74c58d64ea34d *tests/testthat/test-registration.R
-1998775a5b3d4072287c047c2af324fc *tests/testthat/test-utils.R
+e515184212fced287a801441673962bd *tests/testthat/test-utils.R
