@@ -1,4 +1,4 @@
-159b9969ccd522a7eb37146e1099445d *DESCRIPTION
+4f382b5c46b35ee8acf3cded237c25af *DESCRIPTION
 79f84ca6b22e6579d439a673aa257a9d *NAMESPACE
 eab9b6f610af5a4d912de29f0e14440b *NEWS.md
 6057c99c4843eb49e7b3305c642e6b75 *R/LOMAR-package.R
@@ -94,12 +94,12 @@ d4d08381ed2a6716a4545996d1c2db8b *src/geometry/simulator.hpp
 1e77b672e511be4c106b172bbab24b09 *src/geometry/weighted-cechdistance.h
 9f1e9915ccc42df866d0674b2fb8fd4c *src/geometry/weighted-l2distance.h
 789cab4d8fee947a968250979999c057 *src/grid.h
-0a190c86975648fae04088189d6458d2 *src/kde.h
+fed82726ac514c2fba1cebc1ccf67bda *src/kde.h
 badab60b927c4d728c12875a5bf8c892 *src/rips.h
 c7a98c169b0071d33cea90d144b2f20f *src/tdautils/dionysusUtils.h
 c8606ac8cabceee7bf6c34b8f127feb6 *src/tdautils/filtrationDiag.h
 2c9d221ba42ec43dadb40fbf6e36e4e7 *src/tdautils/filtrationUtils.h
-8fd5fdfc8292c826f3c11586558a9e13 *src/tdautils/gridUtils.h
+db2fe937e6b74f5b584736bb81a85352 *src/tdautils/gridUtils.h
 16d21fe2a266b416dd4118ea3423f8a0 *src/tdautils/kernelUtils.h
 4259dedb6a394fe678750a2fd29d6712 *src/tdautils/ripsArbit.h
 235dc02b72178477ab9060a65200958d *src/tdautils/ripsL2.h
@@ -112,7 +112,7 @@ ad4812e8b2db04c04e7fb6e8463a7a54 *src/topology/complex-traits.h
 fe007886495b28104caf6ec64832922b *src/topology/conesimplex.hpp
 cb9003aa6bc86377b0cba6c475400b48 *src/topology/cycles.h
 4b451e006d9af9ce9ad8360350b703e3 *src/topology/dynamic-persistence.h
-430e03638fec14d18a5f0c3802ce7c29 *src/topology/dynamic-persistence.hpp
+0943a5dfe5576298d8f6b086701b8962 *src/topology/dynamic-persistence.hpp
 98c1716687986f802dbe4bb954bde739 *src/topology/field-arithmetic.h
 7fd782b0db33a5c3411da2be0a9d5b21 *src/topology/filtration.h
 d8b6c2e50d5b2f74a92e5bd6493e07b3 *src/topology/filtration.hpp
@@ -124,9 +124,9 @@ bfe327e1e025fca1321fa63042ce4bb2 *src/topology/lsvineyard.h
 3d038de13144ac780d030f7fb9e77048 *src/topology/order.h
 63b31309e215bedcbc4c888827f55e35 *src/topology/persistence-diagram.h
 8e8111eed341a86345b9afc9e7868af9 *src/topology/persistence-diagram.hpp
-192ef0a6440270605188a0c1f8221e61 *src/topology/rips.h
+9f090190431baad27729be05841b125e *src/topology/rips.h
 9819056b952e755d81543b99643fdc82 *src/topology/rips.hpp
-a9b3b32ab2e44a1c3080d93b5a9d288a *src/topology/simplex.h
+da62a21f5a0d716d929be4aa8ddcbe29 *src/topology/simplex.h
 fbe7ca93cbc91b47fc1f801dcb209d0f *src/topology/simplex.hpp
 dbde7969e05b166e74c62a63aa452aad *src/topology/static-persistence.h
 997272ee803b121280ec0b2171da75ff *src/topology/static-persistence.hpp
